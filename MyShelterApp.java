@@ -58,7 +58,7 @@ class Shelter implements java.io.Serializable {
 }
 
 class PetSeeker implements User, java.io.Serializable{
-    // Instance Variables 
+    // Instance variables 
     String name;
     String email;
     String passwd;
