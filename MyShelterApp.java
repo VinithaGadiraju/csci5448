@@ -2,42 +2,39 @@ import java.util.*;
 import java.io.*;
 import java.util.Scanner;
 
-interface User {
-    // Getters 
-    String getName();
-    String getEmail();
-    public boolean validateLogin(String email, String passwd);
-}
-
 class Shelter implements java.io.Serializable {
-    // Instance Variables 
-    String name;
-    ShelterAdmin admin;
-    HashMap<String, PetSeeker> petSeekers;
-    ArrayList<Pet> pets;
+    // Instance Variables
+    private String name;
+    private ShelterAdmin admin;
+    private HashMap<String, PetSeeker> petSeekers;
+    private ArrayList<Pet> pets;
 
-    // Constructor 
+    // Constructor
     public Shelter (String name) {
         this.name = name;
         this.petSeekers = new HashMap<String, PetSeeker>();
         this.pets = new ArrayList<Pet>();
     }
 
-    // Class functions 
+    // Class functions
     public void addPet(Pet pet) {
         this.pets.add(pet);
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public void addPetSeeker(String email, PetSeeker petseeker) {
         this.petSeekers.put(email, petseeker);
     }
 
-    // Setter functions 
+    // Setter functions
     public void setAdmin(ShelterAdmin admin) {
         this.admin = admin;
     }
 
-    // Getter functions 
+    // Getter functions
     public ArrayList<Pet> getPets() {
         return this.pets;
     }
@@ -50,118 +47,189 @@ class Shelter implements java.io.Serializable {
         return this.petSeekers.get(email);
     }
 
-    /* Matching algorithm 
-    public Pet matchPetToPetSeeker(PetSeeker petseeker, Pet pet) {
-        // to be implemented 
+    public ArrayList<Pet> matchPetsToPetSeeker(PetSeeker petseeker) {
+        // return this.pets;
+        ArrayList<Pet> pet_list = new ArrayList<Pet>();
+        for (int i = 0; i < this.pets.size(); i++) {
+            Pet pet = this.pets.get(i);
+
+            Integer matchCriteriaCount = pet.getMatchCriteriaCount();
+            Integer matchPercent = petseeker.getMatchPercentPref();
+            Integer matchCount = pet.getMatchCount(petseeker);
+
+            if (((matchCount*100)/matchCriteriaCount) >= matchPercent) {
+                pet_list.add(pet);
+            }
+        }
+
+        return pet_list;
     }
-    */
+}
+
+interface User {
+    // Getters
+    String getName();
+    String getEmail();
+    boolean validateLogin(String email, String passwd);
 }
 
 class PetSeeker implements User, java.io.Serializable{
-    // Instance variables 
-    String name;
-    String email;
-    String passwd;
-    String petPref;
-    String agePref;
-    String genderPref;
-    String residenceType;
-    String tempermentPref;
-    String breedPref;
+    // Instance variables
+    private String name;
+    private String email;
+    private String passwd;
+    private String petTypePref;
+    private String agePref;
+    private String genderPref;
+    private String residenceTypePref;
+    private String tempermentPref;
+    private String breedPref;
+    private String sizePref;
+    private Integer matchPercentPref;
 
-    // Constructor 
+    // Constructor
     public PetSeeker(String name, String email, String passwd) {
         this.name = name;
         this.email = email;
         this.passwd = passwd;
     }
-    // Setter functions 
-    public void setPetPref(String petpref) {
-        this.petPref = petPref;
+    // Setter functions
+    public void setPetTypePref(String petTypePref) {
+        this.petTypePref = petTypePref;
+    }
+    public String getPetTypePref() {
+        return this.petTypePref;
     }
 
     public void setAgePref(String agepref) {
-        this.agePref = agePref;
+        this.agePref = agepref;
+    }
+    public String getAgePref() {
+        return this.agePref;
     }
 
-    public void setResidenceType(String residencetype) {
-        this.residenceType = residenceType;
+    public void setResidenceTypePref(String residencetype) {
+        this.residenceTypePref = residencetype;
+    }
+    public String getResidenceTypePref() {
+        return this.residenceTypePref;
     }
 
     public void setTempermentPref(String tempermentpref) {
-        this.tempermentPref = tempermentPref;
+        this.tempermentPref = tempermentpref;
+    }
+    public String getTempermentPref() {
+        return this.tempermentPref;
     }
 
     public void setBreedPref(String breedpref) {
-        this.breedPref = breedPref;
+        this.breedPref = breedpref;
+    }
+    public String getBreedPref() {
+        return this.breedPref;
     }
 
-    // Getter functions 
+    public Integer getMatchPercentPref() {
+        return this.matchPercentPref;
+    }
+    public void setMatchPercentPref(Integer matchPercent) {
+        this.matchPercentPref = matchPercent;
+    }
+
+    public void setGenderPref(String genderPref) {
+        this.genderPref = genderPref;
+    }
+    public String getGenderPref() {
+        return this.genderPref;
+    }
+
+    public String getSizePref() {
+        return this.sizePref;
+    }
+    public void setSizePref(String sizepref) {
+        this.sizePref = sizepref;
+    }
+
+    // Interface User
     public String getName() {
         return this.name;
     }
 
     public String getEmail() {
         return this.email;
-    }
-
-    public String getPetPref() {
-        return this.petPref;
-    }
-
-    public String getAgePref() {
-        return this.agePref;
-    }
-    
-    public String getResidenceType() {
-        return this.residenceType;
-    }
-
-    public String getTempermentPref() {
-        return this.tempermentPref;
-    }
-
-    public String getBreedPref() {
-        return this.breedPref;
     }
 
     public boolean validateLogin(String email, String passwd) {
         return (email.equals(this.email) && passwd.equals(this.passwd));
     }
-    /*Profile output function
+
     public void createProfile() {
-        // to be implemented 
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Excellent! Please tell us more about the " + this.petTypePref + " you want.");
+
+        // if Dog, enter age preference, gender preference, temperment preference, and residence type
+        if (this.petTypePref.equals("Dog")) {
+            System.out.println("What is your age preference? ");
+            System.out.print("Press 'P' for Puppy, 'Y' for Young, 'A' for Adult, or 'S' for Senior: ");
+            this.setAgePref(scanner.nextLine());
+
+            System.out.println("What is your gender preference?");
+            System.out.print("Press 'M' for Male or 'F' for Female: ");
+            this.setGenderPref(scanner.nextLine());
+
+            System.out.println("What is your temperment preference? ");
+            System.out.print("Press 'A' for Active, 'L' for Lap Dog, or 'T' for Therapy Dog: ");
+            this.setTempermentPref(scanner.nextLine());
+
+            System.out.println("What kind of residence do you live in?");
+            System.out.print("Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
+            this.setResidenceTypePref(scanner.nextLine());
+        }
+
+        // if Snake, enter age preference, breed preference, and residence type
+        if (this.petTypePref.equals("Snake")) {
+            System.out.println("What is your age preference?");
+            System.out.print("Press 'Y' for Young, 'A' for Adult: ");
+            this.setAgePref(scanner.nextLine());
+
+            System.out.println("What is your breed preference?");
+            System.out.print("Please enter the name of the breed: ");
+            this.setBreedPref(scanner.nextLine());
+
+            System.out.println("What is the size preference?");
+            System.out.print("Press 'S' for Small(< 1ft), 'M' for Medium(< 3 ft), 'L' for Large(>3 ft): ");
+            this.setSizePref(scanner.nextLine());
+
+            System.out.println("What kind of residence do you live in?");
+            System.out.print("Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
+            this.setResidenceTypePref(scanner.nextLine());
+        }
     }
-    */
 }
 
 class ShelterAdmin implements User, java.io.Serializable{
-    // Instance variables 
-    String name;
-    String email;
-    String passwd;
-    
-    // Constructor 
+    // Instance variables
+    private String name;
+    private String email;
+    private String passwd;
+
+    // Constructor
     public ShelterAdmin(String name, String email, String passwd) {
         this.name = name;
         this.email = email;
         this.passwd = passwd;
     }
-    
-    // Getter functions 
+
+    // Interface User
     public String getName() {
         return this.name;
     }
-   
+
     public String getEmail() {
         return this.email;
     }
-
-    /* Profile output function
-    public void createProfile() {
-        // to be implemented 
-    }
-    */
 
     public boolean validateLogin(String email, String passwd) {
         return (email.equals(this.email) && passwd.equals(this.passwd));
@@ -169,227 +237,310 @@ class ShelterAdmin implements User, java.io.Serializable{
 }
 
 abstract class Pet implements java.io.Serializable{
-    // Instance Variables 
-    String name;
-    String age;
-    String residenceNeed;
+    // Instance Variables
+    protected String name;
+    protected String age;
+    protected String residenceNeed;
 
-    // Setter functions 
-    public void setResidenceNeed(String residenceNeed) {
-        this.residenceNeed = residenceNeed;
-    }
-    public void setAge(String age) {
-        this.age = age;
-    }
-
-    // Getter functions 
     public String getName() {
         return this.name;
+    }
+
+    public void setAge(String age) {
+        this.age = age;
     }
     public String getAge() {
         return this.age;
     }
-    public String getResidenceNeeds() {
+    public void setResidenceNeed(String residenceNeed) {
+        this.residenceNeed = residenceNeed;
+    }
+    public String getResidenceNeed() {
         return this.residenceNeed;
     }
+    public abstract Integer getMatchCriteriaCount();
+    public abstract void createProfile();
+    public abstract Integer getMatchCount(PetSeeker p);
 }
 
 class Dog extends Pet implements java.io.Serializable{
-    // Instance variables 
-    String gender;
-    String temperment;
+    // Instance variables
+    private String gender;
+    private String temperment;
 
-    // Constructor 
+    // Constructor
     public Dog(String name) {
         this.name = name;
     }
 
-    // Setter functions 
+    public String getPetType() {
+        return "Dog";
+    }
+
     public void setTemperment(String temperment) {
         this.temperment = temperment;
+    }
+    public String getTemperment() {
+        return this.temperment;
     }
 
     public void setGender(String gender) {
         this.gender = gender;
     }
-
-    // Getter functions 
-    public String getTemperment() {
-        return this.temperment;
+    public String getGender() {
+        return this.gender;
     }
 
+    public Integer getMatchCriteriaCount() {
+        /* Count of (age, gender, residenceNeed, temperment) is 4  */
+        return 4;
+    }
     public String toString() {
-        return ("Dog - " + this.name);
+        return ("Dog: " + this.getName() + ", Gender: " + this.getGender() + ", Age: " + this.getAge());
+    }
+
+    public void createProfile() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("What is the age of the dog?");
+        System.out.print("Press 'P' for Puppy, 'Y' for Young, 'A' for Adult, or 'S' for Senior: ");
+        this.setAge(scanner.nextLine());
+
+        System.out.println("What is the gender of the dog?");
+        System.out.print("Press 'M' for Male or 'F' for Female: ");
+        this.setGender(scanner.nextLine());
+
+        System.out.println("What is the temperment of the dog?");
+        System.out.print("Press 'A' for Active, 'L' for Lap Dog, or 'T' for Therapy Dog: ");
+        this.setTemperment(scanner.nextLine());
+
+        System.out.println("What kind of residence does the dog need?");
+        System.out.print("Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
+        this.setResidenceNeed(scanner.nextLine());
+    }
+
+    public Integer getMatchCount(PetSeeker petseeker) {
+        Integer matchCount = 0;
+
+        if (petseeker.getPetTypePref().equals("Dog")) {
+            if (petseeker.getAgePref().equals(this.getAge())) {
+                matchCount++;
+            }
+            if (petseeker.getResidenceTypePref().equals(this.getResidenceNeed())) {
+                matchCount++;
+            }
+            if (petseeker.getGenderPref().equals(this.getGender())) {
+                matchCount++;
+            }
+            if (petseeker.getTempermentPref().equals(this.getTemperment())) {
+                matchCount++;
+            }
+        }
+
+        return matchCount;
     }
 }
 
 class Snake extends Pet {
-    // Instance variables 
-    String breed;
+    // Instance variables
+    private String breed;
+    private String size;
 
-    // Constructor 
+    // Constructor
     public Snake(String name) {
         this.name = name;
     }
 
-    // Setter functions 
+    public String getPetType() {
+        return "Snake";
+    }
+
     public void setBreed(String breed) {
         this.breed = breed;
     }
- 
-    // Getter functions 
     public String getBreed() {
         return this.breed;
     }
 
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getSize() {
+        return this.size;
+    }
+
     public String toString() {
-        return ("Snake - " + this.name);
+        return ("Snake: " + this.getName() + ", Breed: " + this.getBreed() + ", Age: " + this.getAge());
+    }
+    public Integer getMatchCriteriaCount() {
+        /* Count of (age, size, residenceNeed, breed) is 4 */
+        return 4;
+    }
+    public void createProfile() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("What is the age of the snake?");
+        System.out.print("Press 'Y' for Young, 'A' for Adult: ");
+        this.setAge(scanner.nextLine());
+
+        System.out.println("What is the size of the snake?");
+        System.out.print("Press 'S' for Small(< 1ft), 'M' for Medium(< 3 ft), 'L' for Large(>3 ft): ");
+        this.setSize(scanner.nextLine());
+
+        System.out.println("What is the breed of the snake?");
+        System.out.print("Please type the name of the breed: ");
+        this.setBreed(scanner.nextLine());
+
+        System.out.println("What kind of residence does the snake need?");
+        System.out.print("Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
+        this.setResidenceNeed(scanner.nextLine());
+    }
+
+    public Integer getMatchCount(PetSeeker petseeker) {
+        Integer matchCount = 0;
+
+        if (petseeker.getPetTypePref().equals("Snake")) {
+            if (petseeker.getAgePref().equals(this.getAge())) {
+                matchCount++;
+            }
+            if (petseeker.getResidenceTypePref().equals(this.getResidenceNeed())) {
+                matchCount++;
+            }
+            if (petseeker.getBreedPref().equals(this.getBreed())) {
+                matchCount++;
+            }
+            if (petseeker.getSizePref().equals(this.getSize())) {
+                matchCount++;
+            }
+        }
+
+        return matchCount;
     }
 }
 
 public class MyShelterApp {
     public static void main(String[] args) {
+        // Read Shelter data from external file if the external file exists
+        Shelter shelter = readFrom("shelter_data_file");
+
         Scanner scanner = new Scanner(System.in);
 
-        // Welcome Message 
-        System.out.println("Welcome to Pet Matcher! Are you a Pet seeker (Press P) or a Shelter Admin (Press S): ");
-
+        // Welcome Message
+        System.out.println("Welcome to Pet Matcher! ");
+        System.out.print("Are you a Pet Seeker (Press P) or a Shelter Admin (Press S): ");
         // User selects type (Pet seeker or Shelter admin)
         String userType = scanner.nextLine();
 
-        // Login for User (name, email, password)
-        System.out.println("Wonderful! Please enter your name to sign up: ");
-        String userName = scanner.nextLine();
-
-        System.out.println("Please enter your email: ");
+        // Get User Credentials
+        System.out.print("Please enter your email: ");
         String email = scanner.nextLine();
 
-        System.out.println("Please enter your password for this account: ");
+        System.out.print("Please enter your password for this account: ");
         String passwd = scanner.nextLine();
 
-        // if User is Pet seeker 
-        if (userType.equals("P")) {
-            Shelter shelter = readFrom("shelter_data_file");
+        // if User is Pet seeker
+        if (userType.toUpperCase().equals("P")) {
             if (shelter == null) {
-                System.out.println("Shelter has not signed up yet.");
+                System.out.println("Shelter has not signed up yet.  Please visit again later.  Thank you!");
                 return;
             }
-            // Enter pet preference (dog vs snake)
-            System.out.println("What kind of animal would you like to adopt today? Press 'D' for Dog or 'S' for Snake.");
-            String petType = scanner.nextLine();
+            
+            System.out.println("*** Welcome to " + shelter.getName() + " ***");
+            // Get PetSeeker object from Database
+            PetSeeker p = shelter.getPetSeeker(email);
+            if (p != null) {
+                if (!p.validateLogin(email, passwd)) {
+                    System.out.println("Invalid Password, Bye, Bye !!!");
+                    return;
+                }
+            } else {
+                System.out.println("This Pet Seeker is not present in the system, let's Register");
+                System.out.print("Enter Your Name: ");
+                String name = scanner.nextLine();
+                p = new PetSeeker(name, email, passwd);
+                shelter.addPetSeeker(email, p);
 
-            // if Dog, enter age preference, gender preference, temperment preference, and residence type
-            if (petType.equals("D")) {
-                System.out.println("Excellent! Please tell us more about the dog you want.");
-                System.out.println("What is your age preference? Press 'P' for Puppy, 'Y' for Young, 'A' for Adult, or 'S' for Senior: ");
-                String agePref = scanner.nextLine();
-                
-                System.out.println("What is your gender preference? Press 'M' for Male or 'F' for Female: ");
-                String genderPref = scanner.nextLine();
-
-                System.out.println("What is your temperment preference? Press 'A' for Active, 'L' for Lap Dog, or 'T' for Therapy Dog: ");
-                String tempermentPref = scanner.nextLine();
-
-                System.out.println("What kind of residence do you live in? Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
-                String residenceType = scanner.nextLine();
+                // Enter pet preference (dog vs snake)
+                System.out.println("What kind of animal would you like to adopt today: ");
+                System.out.print("Press 'D' for Dog or 'S' for Snake.");
+                String petType = scanner.nextLine();
+                if (petType.charAt(0) == 'S' || petType.charAt(0) == 's') {
+                    p.setPetTypePref("Snake");
+                } else {
+                    p.setPetTypePref("Dog"); // Default Pet Type.
+                }
+                p.createProfile();
             }
-            // if Snake, enter age preference, breed preference, and residence type 
-            if (petType.equals("S")) {
-                System.out.println("Excellent! Please tell us more about the snake you want.");
-                System.out.println("What is your age preference? Press 'Y' for Young, 'A' for Adult: ");
-                String agePref = scanner.nextLine();
-                
-                System.out.println("What is your breed preference? Please type the name of the breed: ");
-                String breedPref = scanner.nextLine();
 
-                System.out.println("What kind of residence do you live in? Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
-                String residenceType = scanner.nextLine();
-            }
-            System.out.println("Thank you for signing up! Here are some pets available for adoption");
+            System.out.println("Enter your match percentage of your preferences");
+            System.out.print("Enter percentage as Integer (no percent symbol): ");
+            p.setMatchPercentPref(Integer.parseInt(scanner.nextLine()));
 
-            // Call matching algorithm
+            ArrayList<Pet> matching_pets = shelter.matchPetsToPetSeeker(p);
 
-            // For now show all pets, in next milestone we will only show pets that match the profile 
-            ArrayList al = shelter.getPets();
-            for (int i = 0; i < al.size(); i++) {
-                System.out.println(al.get(i));
+            System.out.println("Here are some pets that match your preferences");
+            for (int i = 0; i < matching_pets.size(); i++) {
+                System.out.println(matching_pets.get(i));
             }
         }
-       
-        // if User is Shelter Admin 
-        if (userType.equals("S")) {
-            System.out.println("Please enter the name of the Shelter you work for: ");
-            String shelterName = scanner.nextLine();
 
-            // Create shelter object
-            Shelter shelter = readFrom("shelter_data_file");
-
+        // if User is Shelter Admin
+        if (userType.toUpperCase().equals("S")) {
+            ShelterAdmin shelterAdmin = null;
             if (shelter == null) {
+                System.out.print("You are not registered yet! Please enter your Name: ");
+                String adminName = scanner.nextLine();
+                shelterAdmin = new ShelterAdmin(adminName, email, passwd);
+
+                System.out.print("Please enter the name of the Shelter you work for: ");
+                String shelterName = scanner.nextLine();
                 shelter = new Shelter(shelterName);
-                ShelterAdmin shelterAdmin = new ShelterAdmin(userName, email, passwd);
+
                 shelter.setAdmin(shelterAdmin);
+            } else {
+                // At this point we support only 1 Shelter and 1 ShelterAdmin.
+                if (!shelterAdmin.validateLogin(email, passwd)) {
+                    System.out.println("Invalid Login, Bye, Bye !!!");
+                    return;
+                }
             }
-            // Enter pet type (dog vs snake)
-            System.out.println("What kind of animal would you like to add today? Press 'D' for Dog or 'S' for Snake.");
-            String petType = scanner.nextLine();
 
-            // if Dog, enter name, age, gender, temperment, and residence need
-            if (petType.equals("D")) {
-                System.out.println("Excellent! Please tell us more about this dog.");
-                System.out.println("What is the name of the dog: ");
-                String dogName = scanner.nextLine();
+            while (true) {
+                // Enter pet type (dog vs snake)
+                System.out.println("What kind of Pet would you like to add today?");
+                System.out.print("Press 'D' for Dog or 'S' for Snake: ");
+                String petType = scanner.nextLine();
 
-                Dog dog = new Dog(dogName);
+                if (petType.toUpperCase().equals("D")) {
+                    System.out.print("Excellent! What is the name of this dog: ");
+                    String dogName = scanner.nextLine();
 
-                System.out.println("What is the age of the dog? Press 'P' for Puppy, 'Y' for Young, 'A' for Adult, or 'S' for Senior: ");
-                String age = scanner.nextLine();
-                dog.setAge(age);
+                    Dog dog = new Dog(dogName);
+                    dog.createProfile();
 
-                System.out.println("What is the gender of the dog? Press 'M' for Male or 'F' for Female: ");
-                String gender = scanner.nextLine();
-                dog.setGender(gender);
+                    shelter.addPet(dog);
+                }
 
-                System.out.println("What is the temperment of the dog? Press 'A' for Active, 'L' for Lap Dog, or 'T' for Therapy Dog: ");
-                String temperment = scanner.nextLine();
-                dog.setTemperment(temperment);
+                if (petType.toUpperCase().equals("S")) {
+                    System.out.print("Excellent! What is the name of this snake: ");
+                    String snakeName = scanner.nextLine();
 
-                System.out.println("What kind of residence does the dog need? Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
-                String residenceNeed = scanner.nextLine();
-                dog.setResidenceNeed(residenceNeed);
+                    Snake snake = new Snake(snakeName);
+                    snake.createProfile();
 
-                shelter.addPet(dog);
+                    shelter.addPet(snake);
+                }
+
+                System.out.print("Do you have more pets to add? Y/N: ");
+                String answer = scanner.nextLine();
+                if (answer.charAt(0) == 'n' || answer.charAt(0) == 'N') {
+                    break;
+                }
             }
-            // if Snake, enter age preference, breed preference, and residence type 
-            if (petType.equals("S")) {
-                System.out.println("Excellent! Please tell us more about this snake.");
-                System.out.println("What is the name of the snake: ");
-                String snakeName = scanner.nextLine();
 
-                Snake snake = new Snake(snakeName);
-
-                System.out.println("What is the age of the snake? Press 'Y' for Young, 'A' for Adult: ");
-                String age = scanner.nextLine();
-                snake.setAge(age);
-
-                System.out.println("What is the breed of the snake? Please type the name of the breed: ");
-                String breed = scanner.nextLine();
-                snake.setBreed(breed);
-
-                System.out.println("What kind of residence does the snake need? Press 'H' for House, 'A' for Apartment, 'C' for Condo, or 'R' for Ranch: ");
-                String residenceNeed = scanner.nextLine();
-                snake.setResidenceNeed(residenceNeed);
-
-                shelter.addPet(snake);
-            }
-            // Save shelter to external file before exiting the program 
-            writeTo(shelter, "shelter_data_file");
-            System.out.println("Thank you for the information! This pet has been added to the pet pool.");
+            // Save shelter to external file before exiting the program
+            System.out.println("Thank you for the information! The pets you entered have been added to the pet pool.");
         }
-
-        // Still need to implement: creating objects using collected data, showing pets to users, matching, and messaging
-
-        
-
+        writeTo(shelter, "shelter_data_file");
     }
 
     static Shelter readFrom(String data_file) {
@@ -399,11 +550,11 @@ public class MyShelterApp {
             ObjectInputStream in = new ObjectInputStream(fileIn);
             shelter = (Shelter) in.readObject();
             in.close();
-            fileIn.close(); 
-        } 
+            fileIn.close();
+        }
         catch (IOException e) {
             return null;
-        } 
+        }
         catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -417,13 +568,12 @@ public class MyShelterApp {
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(shelter);
             out.close();
-            fileOut.close();    
-        } 
+            fileOut.close();
+        }
         catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
 }
-
 
 
