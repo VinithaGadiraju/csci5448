@@ -20,7 +20,9 @@ class Shelter implements java.io.Serializable {
     public void addPet(Pet pet) {
         this.pets.add(pet);
     }
-
+    public void removePet(Pet pet) {
+        this.pets.remove(pet);
+    }
     public String getName() {
         return this.name;
     }
@@ -67,7 +69,6 @@ class Shelter implements java.io.Serializable {
 }
 
 interface User {
-    // Getters
     String getName();
     String getEmail();
     boolean validateLogin(String email, String passwd);
@@ -417,156 +418,41 @@ class Snake extends Pet {
     }
 }
 
-public class MyShelterApp {
-    public static void main(String[] args) {
-        // Read Shelter data from external file if the external file exists
-        Shelter shelter = readFrom("shelter_data_file");
+// This is the facade pattern class
+class ShelterFacade {
+    private Shelter shelter;
+    private String userLoginType;
+    private String userEmail;
+    private String userPass;
 
-        Scanner scanner = new Scanner(System.in);
-
-        // Welcome Message
-        System.out.println("Welcome to Pet Matcher! ");
-        System.out.print("Are you a Pet Seeker (Press P) or a Shelter Admin (Press S): ");
-        // User selects type (Pet seeker or Shelter admin)
-        String userType = scanner.nextLine();
-
-        // Get User Credentials
-        System.out.print("Please enter your email: ");
-        String email = scanner.nextLine();
-
-        System.out.print("Please enter your password for this account: ");
-        String passwd = scanner.nextLine();
-
-        // if User is Pet seeker
-        if (userType.toUpperCase().equals("P")) {
-            if (shelter == null) {
-                System.out.println("Shelter has not signed up yet.  Please visit again later.  Thank you!");
-                return;
-            }
-            
-            System.out.println("*** Welcome to " + shelter.getName() + " ***");
-            // Get PetSeeker object from Database
-            PetSeeker p = shelter.getPetSeeker(email);
-            if (p != null) {
-                if (!p.validateLogin(email, passwd)) {
-                    System.out.println("Invalid Password, Bye, Bye !!!");
-                    return;
-                }
-            } else {
-                System.out.println("This Pet Seeker is not present in the system, let's Register");
-                System.out.print("Enter Your Name: ");
-                String name = scanner.nextLine();
-                p = new PetSeeker(name, email, passwd);
-                shelter.addPetSeeker(email, p);
-
-                // Enter pet preference (dog vs snake)
-                System.out.println("What kind of animal would you like to adopt today: ");
-                System.out.print("Press 'D' for Dog or 'S' for Snake.");
-                String petType = scanner.nextLine();
-                if (petType.charAt(0) == 'S' || petType.charAt(0) == 's') {
-                    p.setPetTypePref("Snake");
-                } else {
-                    p.setPetTypePref("Dog"); // Default Pet Type.
-                }
-                p.createProfile();
-            }
-
-            System.out.println("Enter your match percentage of your preferences");
-            System.out.print("Enter percentage as Integer (no percent symbol): ");
-            p.setMatchPercentPref(Integer.parseInt(scanner.nextLine()));
-
-            ArrayList<Pet> matching_pets = shelter.matchPetsToPetSeeker(p);
-
-            System.out.println("Here are some pets that match your preferences");
-            for (int i = 0; i < matching_pets.size(); i++) {
-                System.out.println(matching_pets.get(i));
-            }
-        }
-
-        // if User is Shelter Admin
-        if (userType.toUpperCase().equals("S")) {
-            ShelterAdmin shelterAdmin = null;
-            if (shelter == null) {
-                System.out.print("You are not registered yet! Please enter your Name: ");
-                String adminName = scanner.nextLine();
-                shelterAdmin = new ShelterAdmin(adminName, email, passwd);
-
-                System.out.print("Please enter the name of the Shelter you work for: ");
-                String shelterName = scanner.nextLine();
-                shelter = new Shelter(shelterName);
-
-                shelter.setAdmin(shelterAdmin);
-            } else {
-                // At this point we support only 1 Shelter and 1 ShelterAdmin.
-                if (!shelterAdmin.validateLogin(email, passwd)) {
-                    System.out.println("Invalid Login, Bye, Bye !!!");
-                    return;
-                }
-            }
-
-            while (true) {
-                // Enter pet type (dog vs snake)
-                System.out.println("What kind of Pet would you like to add today?");
-                System.out.print("Press 'D' for Dog or 'S' for Snake: ");
-                String petType = scanner.nextLine();
-
-                if (petType.toUpperCase().equals("D")) {
-                    System.out.print("Excellent! What is the name of this dog: ");
-                    String dogName = scanner.nextLine();
-
-                    Dog dog = new Dog(dogName);
-                    dog.createProfile();
-
-                    shelter.addPet(dog);
-                }
-
-                if (petType.toUpperCase().equals("S")) {
-                    System.out.print("Excellent! What is the name of this snake: ");
-                    String snakeName = scanner.nextLine();
-
-                    Snake snake = new Snake(snakeName);
-                    snake.createProfile();
-
-                    shelter.addPet(snake);
-                }
-
-                System.out.print("Do you have more pets to add? Y/N: ");
-                String answer = scanner.nextLine();
-                if (answer.charAt(0) == 'n' || answer.charAt(0) == 'N') {
-                    break;
-                }
-            }
-
-            // Save shelter to external file before exiting the program
-            System.out.println("Thank you for the information! The pets you entered have been added to the pet pool.");
-        }
-        writeTo(shelter, "shelter_data_file");
+    public ShelterFacade() {
+        this.userLoginType = null;
+        this.shelter = null;
+        this.userEmail = null;
+        this.userPass = null;
     }
 
-    static Shelter readFrom(String data_file) {
-        Shelter shelter = null;
+    public void readFrom(String data_file) {
         try {
             FileInputStream fileIn = new FileInputStream(data_file);
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            shelter = (Shelter) in.readObject();
+            this.shelter = (Shelter) in.readObject();
             in.close();
             fileIn.close();
         }
         catch (IOException e) {
-            return null;
+            return;
         }
         catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-        return shelter;
     }
 
-    static void writeTo(Shelter shelter, String data_file) {
+    public void writeTo(String data_file) {
         try {
             FileOutputStream fileOut = new FileOutputStream(data_file);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(shelter);
+            out.writeObject(this.shelter);
             out.close();
             fileOut.close();
         }
@@ -574,6 +460,195 @@ public class MyShelterApp {
             ioe.printStackTrace();
         }
     }
+
+    public String getUserLoginType() {
+        return this.userLoginType;
+    }
+
+    public void loginUser() {
+        Scanner scanner = new Scanner(System.in);
+
+        // Welcome Message
+        System.out.println("Welcome to Pet Matcher! ");
+
+        // User selects type (Pet seeker or Shelter admin)
+        System.out.print("Are you a Pet Seeker (Press P) or a Shelter Admin (Press S): ");
+        this.userLoginType = scanner.nextLine();
+
+        // Get User Credentials
+        System.out.print("Please enter your email: ");
+        this.userEmail = scanner.nextLine();
+
+        System.out.print("Please enter your password for this account: ");
+        this.userPass = scanner.nextLine();        
+    }
+
+    public void addPets() {
+        Scanner scanner = new Scanner(System.in);
+
+        ShelterAdmin shelterAdmin = null;
+        if (this.shelter == null) {
+            System.out.print("You are not registered yet! Please enter your Name: ");
+            String adminName = scanner.nextLine();
+            shelterAdmin = new ShelterAdmin(adminName, this.userEmail, this.userPass);
+
+            System.out.print("Please enter the name of the Shelter you work for: ");
+            String shelterName = scanner.nextLine();
+            this.shelter = new Shelter(shelterName);
+
+            this.shelter.setAdmin(shelterAdmin);
+        } else {
+            // At this point we support only 1 Shelter and 1 ShelterAdmin.
+
+            if (!this.shelter.getAdmin().validateLogin(this.userEmail, this.userPass)) {
+                System.out.println("Invalid Login, Bye, Bye !!!");
+                return;
+            }
+        }
+
+        while (true) {
+            // Enter pet type (dog vs snake)
+            System.out.println("What kind of Pet would you like to add today?");
+            System.out.print("Press 'D' for Dog or 'S' for Snake: ");
+            String petType = scanner.nextLine();
+
+            if (petType.toUpperCase().equals("D")) {
+                System.out.print("Excellent! What is the name of this dog: ");
+                String dogName = scanner.nextLine();
+
+                Dog dog = new Dog(dogName);
+                dog.createProfile();
+
+                this.shelter.addPet(dog);
+            }
+
+            if (petType.toUpperCase().equals("S")) {
+                System.out.print("Excellent! What is the name of this snake: ");
+                String snakeName = scanner.nextLine();
+
+                Snake snake = new Snake(snakeName);
+                snake.createProfile();
+
+                this.shelter.addPet(snake);
+            }
+
+            System.out.print("Do you have more pets to add? Y/N: ");
+            String answer = scanner.nextLine();
+            if (answer.charAt(0) == 'n' || answer.charAt(0) == 'N') {
+                break;
+            }
+        }
+        // Save shelter to external file before exiting the program
+        System.out.println("Thank you for the information! The pets you entered have been added to the pet pool.");
+    }
+
+    public void matchPets() {
+        Scanner scanner = new Scanner(System.in);
+
+        if (this.shelter == null) {
+            System.out.println("Shelter has not signed up yet.  Please visit again later.  Thank you!");
+            return;
+        }
+        
+        System.out.println("*** Welcome to " + this.shelter.getName() + " ***");
+        // Get PetSeeker object from Database
+        PetSeeker p = this.shelter.getPetSeeker(this.userEmail);
+        if (p != null) {
+            if (!p.validateLogin(this.userEmail, this.userPass)) {
+                System.out.println("Invalid Password, Bye, Bye !!!");
+                return;
+            }
+        } else {
+            System.out.println("This Pet Seeker is not present in the system, let's Register");
+            System.out.print("Enter Your Name: ");
+            String name = scanner.nextLine();
+            p = new PetSeeker(name, this.userEmail, this.userPass);
+            this.shelter.addPetSeeker(this.userEmail, p);
+
+            // Enter pet preference (dog vs snake)
+            System.out.println("What kind of animal would you like to adopt today: ");
+            System.out.print("Press 'D' for Dog or 'S' for Snake.");
+            String petType = scanner.nextLine();
+            if (petType.charAt(0) == 'S' || petType.charAt(0) == 's') {
+                p.setPetTypePref("Snake");
+            } else {
+                p.setPetTypePref("Dog"); // Default Pet Type.
+            }
+            p.createProfile();
+        }
+
+        System.out.println("Enter your match percentage of your preferences");
+        System.out.print("Enter percentage as Integer (no percent symbol): ");
+        p.setMatchPercentPref(Integer.parseInt(scanner.nextLine()));
+
+        ArrayList<Pet> matching_pets = shelter.matchPetsToPetSeeker(p);
+
+        Integer index = 0;
+        while (true) {
+            if (matching_pets.size() == 0) {
+                System.out.println("Currently we dont have any matching Pets, Please visit again!");
+                break;
+            }
+
+            System.out.println("♥ Here is a Pet that match your preferences ♥");
+            System.out.println(matching_pets.get(index));
+            System.out.println("Enter N for Next, P for Prev, C for Choose and E for Exit");
+            String option = scanner.nextLine();
+            if (option.toUpperCase().charAt(0) == 'E') {
+                System.out.println("Thank You!");
+                break;
+            }
+            if (option.toUpperCase().charAt(0) == 'C') {
+                System.out.println("♥ ♥ ♥ Congratulations! You chose " + matching_pets.get(index).toString() + " ♥ ♥ ♥");
+                Pet pet = matching_pets.get(index);
+                matching_pets.remove(pet);
+                this.shelter.removePet(pet);
+                if (matching_pets.size() == 0) {
+                    System.out.println("We dont have any more matching Pets, Please visit again!");
+                    break;                        
+                } 
+                else {
+                    index = index - 1;
+                }
+            }
+            if (option.toUpperCase().charAt(0) == 'N') {
+                index = index + 1;
+                if (index >= matching_pets.size()) {
+                    index = matching_pets.size() - 1;
+                    System.out.println("");
+                    System.out.println("You have reached the end of the Pet List <========");
+                }
+            }  
+            if (option.toUpperCase().charAt(0) == 'P') {
+                index = index - 1;
+                if (index < 0) {
+                    index = 0;
+                    System.out.println("");               
+                    System.out.println("========> You have reached the start of the Pet List");
+                }
+            }
+        }
+    }
 }
 
 
+public class MyShelterApp {
+    public static void main(String[] args) {
+
+        ShelterFacade sf = new ShelterFacade();
+
+        sf.readFrom("shelter_data_file");
+
+        sf.loginUser();
+
+        if (sf.getUserLoginType().equals("P")) {
+            sf.matchPets();
+        }
+
+        if (sf.getUserLoginType().equals("S")) {
+            sf.addPets();
+        }
+
+        sf.writeTo("shelter_data_file");
+    }
+}
